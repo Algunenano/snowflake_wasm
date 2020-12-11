@@ -4,7 +4,7 @@ all: ${WASM_TARGET}
 
 SRC_FILES = argon2/argon2.c argon2/core.c argon2/ref.c argon2/thread.c argon2/encoding.c argon2/blake2/blake2b.c
 CFLAGS_INCLUDE = -I./argon2
-CFLAGS = -flto=full -O0 -g3 $(CFLAGS_INCLUDE)
+CFLAGS = -flto=full -O3 $(CFLAGS_INCLUDE)
 
 JS_HELPERS = --post-js wasm_helpers.js
 WASM_MEMORY = -s INITIAL_MEMORY=200MB
@@ -14,6 +14,7 @@ WASM_FORMAT = -s WASM=1 $(WASM_FLAGS)
 
 EXPORTED_FUNCTIONS = '[ \
 	"_argon2_hash", \
+	"_argon2_verify", \
 	\
 	"_malloc", \
 	"_free"]'
