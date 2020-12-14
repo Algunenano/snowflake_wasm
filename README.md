@@ -1,95 +1,17 @@
-Files under argon2/ come from https://github.com/P-H-C/phc-winner-argon2
+## Snowflake WASM prototype
 
-TODO: Add license
-TODO: Add blog :D
+Blog post can be found [here](https://rmr.ninja/2020-12-14-Snowflake-WebAssembly/).
 
-CREATE TABLE DEMO_DB.PUBLIC.USERS (username STRING, hash STRING);
-
-
-CREATE OR REPLACE FUNCTION DEMO_DB.PUBLIC.argon2_hash(password_input STRING, diffsalt_input STRING) 
-  RETURNS STRING
-  LANGUAGE JAVASCRIPT
-AS
-$$
-  // File contents go here
-  return wasm_argon2_hash(PASSWORD_INPUT, DIFFSALT_INPUT);
-$$
-;
-
-CREATE OR REPLACE FUNCTION DEMO_DB.PUBLIC.argon2_verify(hash_input STRING, password_input STRING) 
-  RETURNS STRING
-  LANGUAGE JAVASCRIPT
-AS
-$$
-  -- File contents go here
-  return wasm_argon2_verify(HASH_INPUT, PASSWORD_INPUT);
-$$;
-
-
-```sql
-SELECT DEMO_DB.PUBLIC.argon2_verify('password1', 'somesalt1')
+Contents:
+``` 
+├── argon2/         - Comes from come from [here](https://github.com/P-H-C/phc-winner-argon2) and are used under the Apache Public License 2.0.
+├── argon2.js       - Complete JS file that includes the compiled WASM
+├── argon2.lo       - Temporal library containing LLVM bitcode
+├── argon2.sql      - Final SQL functions that can be used in Snowflake
+├── LICENSE         - License file ( Apache Public License 2.0)
+├── Makefile        - Basic Makefile that uses Emscripten to build the project
+├── README.md       - This file
+├── simpletest.js   - Simple script to test the funcionality with node
+├── template.sql    - Templates for the SQL functions 
+└── wasm_helpers.js - Functions to wrap the WASM calls
 ```
-
-
-```sql
-SELECT DEMO_DB.PUBLIC.argon2_verify('$argon2i$v=19$m=8,t=2,p=1$c29tZXNhbHQx$Bkvg+m6atN29vDHi/Cx6f+1iy8jpCIfx0XP4VDEbI7E', 'password1')
-```
-
-```sql
-Select DEMO_DB.PUBLIC.example_js('aaa', 'bbb');
-```
-
-```sql
-INSERT INTO "DEMO_DB"."PUBLIC"."USERS" (username, hash) VALUES
-    ('name1', DEMO_DB.PUBLIC.argon2_hash('password', 'PRESALT' || 'name1'));
-```
-
-Error: 
-```
-SQL compilation error: Invalid expression [JAVASCRIPT_V('ARGON2_HASH', 'PASSWORD_INPUT,DIFFSALT_INPUT', ' va
-```
-
-
-```sql
-INSERT INTO "DEMO_DB"."PUBLIC"."USERS" (username, hash) 
-SELECT  'name1' as username,
-                DEMO_DB.PUBLIC.argon2_hash('password', 'PRESALT' || 'name1')
-UNION ALL
-SELECT  'name2' as username,
-                DEMO_DB.PUBLIC.argon2_hash('password2', 'PRESALT' || 'name2')
-```
-
-
-Read the table:
-
-| Row | USERNAME | HASH |
-| 1 | name1 | $argon2i$v=19$m=8,t=2,p=1$UFJFU0FMVG5hbWUx$lQ9WY9LHa8SRyuxtnsvJOwzF0dGTRIw5gxdCMgynQ0k |
-| 2 | name2 | $argon2i$v=19$m=8,t=2,p=1$UFJFU0FMVG5hbWUy$A+FjQNP3L/1x/OBYdGM0fVwFkayl09kgHK2q7ZibDZM |
-
-
-### Checking the valid pass:
-
-``` sql
-
-SELECT username, DEMO_DB.PUBLIC.argon2_verify(hash, 'password') as valid
-FROM DEMO_DB.PUBLIC.users
-where USERNAME = 'name1'
-
-```
-
-| Row | USERNAME |  VALID |
-| 1 | name1 |  true | 
-
-
-### Checking with an invalid password
-
-``` sql
-
-SELECT username, DEMO_DB.PUBLIC.argon2_verify(hash, 'invalid_password') as valid
-FROM DEMO_DB.PUBLIC.users
-where USERNAME = 'name1'
-
-```
-
-| Row | USERNAME |  VALID |
-| 1 | name1 |  false | 

@@ -1,0 +1,17 @@
+CREATE OR REPLACE FUNCTION argon2_hash(password_input STRING, diffsalt_input STRING) 
+  RETURNS STRING
+  LANGUAGE JAVASCRIPT
+AS
+$$
+  @@WASM_FILE_CONTENTS@@
+  return wasm_argon2_hash(PASSWORD_INPUT, DIFFSALT_INPUT);
+$$;
+
+CREATE OR REPLACE FUNCTION argon2_verify(hash_input STRING, password_input STRING) 
+  RETURNS STRING
+  LANGUAGE JAVASCRIPT
+AS
+$$
+  @@WASM_FILE_CONTENTS@@
+  return wasm_argon2_verify(HASH_INPUT, PASSWORD_INPUT);
+$$;
